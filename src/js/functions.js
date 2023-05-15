@@ -1,21 +1,7 @@
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { Report } from 'notiflix/build/notiflix-report-aio';
 import REFS from './references.js';
 import { fetchCountries } from './fetchCountries.js';
-
-/**
- ** 1. Get references to html elements
- * *2. Create function fetchCountries for http request
- ** 3. Use debounce on event listener
- ** 4. If user clears input http request wont work, markup removes from DOM
- ** 5. Add trim() to user input
- * 6. Create function that makes markup with result of fetchCountries
- ** 6.1 If server response has more than 10 results, alert "Too many matches found. Please enter a more specific name."
- * 6.2 If server response has 2-10 results - create markup with flags and name of a country
- * 6.3 If server response has 1 result - create markup with flag, name of a country, capital, population, currencies
- * 6.4 If country not exists - alert "Oops, there is no country with that name", (error 404)
- * /
-
-
 
 /**
  * Processes the server response, adds markup to the DOM
@@ -24,11 +10,12 @@ import { fetchCountries } from './fetchCountries.js';
  */
 const onUserInput = name => {
   if (!name) {
+    REFS.country_info.innerHTML = '';
+    REFS.country_list.innerHTML = '';
     return;
   } else
     fetchCountries(name)
       .then(result => {
-        console.log(result);
         return result.reduce(
           (markup, element) => createMarkup(result, element) + markup,
           ''
@@ -43,6 +30,8 @@ const onUserInput = name => {
  * @param {Error} error
  */
 function onError(error) {
+  REFS.country_list.innerHTML = '';
+  REFS.country_info.innerHTML = '';
   Notify.failure('Oops, there is no country with that name.', {
     width: '260px',
     showOnlyTheLastOne: true,
@@ -56,13 +45,17 @@ function onError(error) {
   console.error(error);
 }
 /**
- * Creates markup
+ * Produces different markup depending on the server's response
  * @function createMarkup
- * @param {array} userInput array of objects
+ * @param {array} serverResponse Array of objects
+ * @param {element} element Object
  */
 function createMarkup(serverResponse, element) {
-  const serverResponseLength = serverResponse.length;
+  const serverResponseLength = serverResponse.length,
+    languagesValues = Object.values(element.languages).join(' ');
   if (serverResponseLength > 10) {
+    REFS.country_list.innerHTML = '';
+    REFS.country_info.innerHTML = '';
     Notify.info('Too many matches found. Please enter a more specific name.', {
       width: '260px',
       showOnlyTheLastOne: true,
@@ -74,12 +67,71 @@ function createMarkup(serverResponse, element) {
       cssAnimationStyle: 'from-bottom',
     });
     return '';
-  } else if (serverResponseLength >= 2 && serverResponseLength < 10) {
-    return `<li>${element.capital}</li>`;
-  } else return `<li>ONLY ONE!!!    ${element.capital}</li>`;
+  } else if (serverResponseLength >= 2 && serverResponseLength <= 10) {
+    REFS.country_info.innerHTML = '';
+    return `
+    <li class='li-item'>
+    <img src='${element.flags.png}' alt='${element.flags.alt}' srcset='${element.flags.svg}' class="li-icon"></img>
+    <p class='li-text'>${element.name.common}</p>
+    </li>`;
+  } else if (element.capital[0] === 'Moscow') {
+    REFS.country_info.innerHTML = '';
+    Report.failure(
+      'This app does not show information about a terrorist country!',
+      'Only its crimes...',
+      'I agree',
+      () => openUrl(),
+      {
+        svgSize: '80px',
+        titleMaxLength: 100,
+        messageFontSize: '20px',
+      }
+    );
+    return '';
+  } else if (element.capital[0] === 'Kyiv') {
+    REFS.country_list.innerHTML = '';
+    return `
+    <img src='${element.flags.png}' alt='${element.flags.alt}' srcset='${element.flags.svg}' class="country-icon-ua"></img>
+  <h2 class='country-title'>${element.name.common}</h2>
+      <ul class="country-info-list">
+      <li class="country-info-list-item"><b>Capital:</b> ${element.capital}</li>
+      <li class="country-info-list-item"><b>Population:</b> ${element.population}</li>
+      <li class="country-info-list-item"><b>Languages:</b> ${languagesValues}</li>
+    </ul>
+    <p class='country-text-ua'>Glory to Ukraine!</p>
+  `;
+  } else {
+    REFS.country_list.innerHTML = '';
+    return `
+    <div class='country-title-container'>
+    <img src='${element.flags.png}' alt='${element.flags.alt}' srcset='${element.flags.svg}' class="country-icon"></img>
+  <h2 class='country-title'>${element.name.common}</h2>
+  </div>
+      <ul class="country-info-list">
+      <li class="country-info-list-item"><b>Capital:</b> ${element.capital}</li>
+      <li class="country-info-list-item"><b>Population:</b> ${element.population}</li>
+      <li class="country-info-list-item"><b>Languages:</b> ${languagesValues}</li>
+    </ul>
+  `;
+  }
 }
-
+/**
+ *  Updates markup
+ * @function updateCountriesList
+ * @param {string} markup
+ */
 function updateCountriesList(markup) {
-  REFS.country_list.innerHTML = markup;
+  markup.includes('country-info-list')
+    ? (REFS.country_info.innerHTML = markup)
+    : (REFS.country_list.innerHTML = markup);
+}
+/**
+ * Opens a new window
+ * @function openUrl
+ */
+function openUrl() {
+  REFS.input_element.value = '';
+  const url = 'https://war.ukraine.ua/russia-war-crimes/';
+  window.open(url);
 }
 export { onUserInput };
