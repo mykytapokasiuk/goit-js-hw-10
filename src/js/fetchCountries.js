@@ -10,7 +10,7 @@ const fetchCountries = name => {
   ).then(response => {
     if (response.ok) {
       return response.json();
-    } else throw new Error('Status code error: ' + response.status);
+    } else throw new Error(response.status);
   });
 };
 

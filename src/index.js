@@ -8,5 +8,10 @@ const debouncedOnUserInput = debounce(onUserInput, DEBOUNCE_DELAY);
 
 REFS.input_element.addEventListener('input', event => {
   const userInput = event.currentTarget.value.trim();
+  if (!userInput) {
+    REFS.country_info.innerHTML = '';
+    REFS.country_list.innerHTML = '';
+    return;
+  }
   debouncedOnUserInput(userInput);
 });

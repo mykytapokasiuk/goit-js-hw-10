@@ -4,25 +4,20 @@ import REFS from './references.js';
 import { fetchCountries } from './fetchCountries.js';
 
 /**
- * Processes the server response, adds markup to the DOM
+ * Processes the server's response to user input
  * @function onUserInput
  * @param {string} name
  */
 const onUserInput = name => {
-  if (!name) {
-    REFS.country_info.innerHTML = '';
-    REFS.country_list.innerHTML = '';
-    return;
-  } else
-    fetchCountries(name)
-      .then(result => {
-        return result.reduce(
-          (markup, element) => createMarkup(result, element) + markup,
-          ''
-        );
-      })
-      .then(updateCountriesList)
-      .catch(errror => onError(errror));
+  fetchCountries(name)
+    .then(result => {
+      return result.reduce(
+        (markup, element) => handleServerResponse(result, element) + markup,
+        ''
+      );
+    })
+    .then(renderMarkup)
+    .catch(error => onError(error));
 };
 /**
  * Reports an error
@@ -32,50 +27,80 @@ const onUserInput = name => {
 function onError(error) {
   REFS.country_list.innerHTML = '';
   REFS.country_info.innerHTML = '';
-  Notify.failure('Oops, there is no country with that name.', {
-    width: '260px',
-    showOnlyTheLastOne: true,
-    position: 'right-bottom',
-    distance: '40px',
-    timeout: 2000,
-    fontSize: '15px',
-    borderRadius: '8px',
-    cssAnimationStyle: 'from-bottom',
-  });
-  console.error(error);
+  if (error.message === '404') {
+    Notify.failure('Oops, there is no country with that name.', {
+      width: '260px',
+      showOnlyTheLastOne: true,
+      position: 'center-center',
+      timeout: 2000,
+      fontSize: '15px',
+      borderRadius: '8px',
+      cssAnimationStyle: 'from-top',
+    });
+  } else {
+    Notify.failure(`${error.message}`, {
+      width: '260px',
+      showOnlyTheLastOne: true,
+      position: 'center-center',
+      timeout: 2000,
+      fontSize: '15px',
+      borderRadius: '8px',
+      cssAnimationStyle: 'from-top',
+    });
+  }
 }
 /**
- * Produces different markup depending on the server's response
- * @function createMarkup
+ * Passes processed information to functions depending on the server's response
+ * @function handleServerResponse
  * @param {array} serverResponse Array of objects
  * @param {element} element Object
  */
-function createMarkup(serverResponse, element) {
-  const serverResponseLength = serverResponse.length,
-    languagesValues = Object.values(element.languages).join(' ');
+function handleServerResponse(serverResponse, element) {
+  const serverResponseLength = serverResponse.length;
   if (serverResponseLength > 10) {
     REFS.country_list.innerHTML = '';
     REFS.country_info.innerHTML = '';
     Notify.info('Too many matches found. Please enter a more specific name.', {
       width: '260px',
       showOnlyTheLastOne: true,
-      position: 'right-bottom',
-      distance: '40px',
+      position: 'center-center',
       timeout: 2000,
       fontSize: '15px',
       borderRadius: '8px',
-      cssAnimationStyle: 'from-bottom',
+      cssAnimationStyle: 'from-top',
     });
     return '';
   } else if (serverResponseLength >= 2 && serverResponseLength <= 10) {
-    REFS.country_info.innerHTML = '';
-    return `
+    return createCountriesMarkup(element);
+  } else {
+    return createCountryMarkup(element);
+  }
+}
+/**
+ * Creates markup for multiple countries
+ * @function createCountryMarkup
+ * @param {object} element
+ * @returns {string} String
+ */
+function createCountriesMarkup(element) {
+  REFS.country_info.innerHTML = '';
+  return `
     <li class='li-item'>
     <img src='${element.flags.png}' alt='${element.flags.alt}' srcset='${element.flags.svg}' class="li-icon"></img>
     <p class='li-text'>${element.name.common}</p>
     </li>`;
-  } else if (element.capital[0] === 'Moscow') {
-    REFS.country_info.innerHTML = '';
+}
+/**
+ * Creates markup for one country
+ * @function createCountryMarkup
+ * @param {object} element
+ * @returns {string} String
+ */
+function createCountryMarkup(element) {
+  const languagesValues = Object.values(element.languages).join(', ');
+  if (element.capital[0] === 'Moscow') {
+    REFS.country_list.innerHTML = '';
+    REFS.input_element.setAttribute('disabled', 'true');
     Report.failure(
       'This app does not show information about a terrorist country!',
       'Only its crimes...',
@@ -92,7 +117,7 @@ function createMarkup(serverResponse, element) {
     REFS.country_list.innerHTML = '';
     return `
     <img src='${element.flags.png}' alt='${element.flags.alt}' srcset='${element.flags.svg}' class="country-icon-ua"></img>
-  <h2 class='country-title'>${element.name.common}</h2>
+  <h2 class='country-title-ua'>${element.name.common}</h2>
       <ul class="country-info-list">
       <li class="country-info-list-item"><b>Capital:</b> ${element.capital}</li>
       <li class="country-info-list-item"><b>Population:</b> ${element.population}</li>
@@ -115,12 +140,13 @@ function createMarkup(serverResponse, element) {
   `;
   }
 }
+
 /**
- *  Updates markup
- * @function updateCountriesList
+ *  Renders markup
+ * @function renderMarkup
  * @param {string} markup
  */
-function updateCountriesList(markup) {
+function renderMarkup(markup) {
   markup.includes('country-info-list')
     ? (REFS.country_info.innerHTML = markup)
     : (REFS.country_list.innerHTML = markup);
@@ -131,6 +157,7 @@ function updateCountriesList(markup) {
  */
 function openUrl() {
   REFS.input_element.value = '';
+  REFS.input_element.removeAttribute('disabled');
   const url = 'https://war.ukraine.ua/russia-war-crimes/';
   window.open(url);
 }

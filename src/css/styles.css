@@ -62,7 +62,7 @@ ol {
   margin: 0 0 30px 0;
   background-color: rgb(216, 162, 97);
   outline: none;
-  border: none;
+  border: 2px solid rgba(0, 0, 0, 0.75);
   border-radius: 5px;
   box-shadow: 3px 3px 3px 0px rgba(0, 0, 0, 0.75);
   text-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
@@ -73,11 +73,15 @@ ol {
   color: rgb(255, 255, 255)
 }
 
+
 .li-item {
   display: flex;
   align-items: center;
   gap: 15px;
   margin-bottom: 20px;
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 .li-icon {
@@ -99,6 +103,9 @@ ol {
   display: flex;
   align-items: center;
   gap: 10px;
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 .country-icon {
@@ -115,6 +122,9 @@ ol {
   border-radius: 5px;
   box-shadow: 3px 3px 3px 0px rgba(0, 0, 0, 0.75);
   margin-bottom: 10px;
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 .country-text-ua {
@@ -124,17 +134,26 @@ ol {
   font-weight: 600;
   line-height: 1.1;
   text-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
-.country-title {
+.country-title-ua {
   font-size: 30px;
   font-weight: 600;
   line-height: 1.1;
   text-shadow: 1px 1px 2px 0px rgba(0, 0, 0, 0.75);
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 .country-info-list {
   padding-top: 10px;
+  animation: fadeInAnimation ease-in-out 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 .country-info-list-item {
@@ -149,4 +168,14 @@ ol {
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: 0.05em;
+}
+
+@keyframes fadeInAnimation {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
